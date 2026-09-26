@@ -196,6 +196,11 @@ export default function ReceiptPage({
 
     onSaveNewInvoice(newInvoiceRecord);
     setIsSubmitModalOpen(true);
+
+    // Automatically trigger PDF download when submitting/saving invoice
+    setTimeout(() => {
+      handleDownloadPdf();
+    }, 250);
   };
 
   const handleDownloadPdf = async () => {
@@ -401,6 +406,7 @@ export default function ReceiptPage({
         onDownloadPdf={handleDownloadPdf}
         onPrint={handlePrint}
         onNewInvoice={handleResetNew}
+        isGeneratingPdf={isGeneratingPdf}
       />
     </div>
   );

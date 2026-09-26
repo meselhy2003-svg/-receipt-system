@@ -16,6 +16,7 @@ export default function SubmitModal({
   onDownloadPdf,
   onPrint,
   onNewInvoice,
+  isGeneratingPdf = false,
 }) {
   if (!isOpen) return null;
 
@@ -26,9 +27,9 @@ export default function SubmitModal({
           <CheckCircle2 size={36} />
         </div>
 
-        <h3 className="modal-title">تم اعتماد الفاتورة بنجاح!</h3>
+        <h3 className="modal-title">تم اعتماد وحفظ الفاتورة بنجاح!</h3>
         <p className="modal-subtitle">
-          تم حفظ بيانات الفاتورة رقم #{invoiceNumber} وهي جاهزة للطباعة أو التنزيل
+          تم حفظ الفاتورة رقم #{invoiceNumber} بنجاح، ويتم الآن تنزيل ملف الـ PDF تلقائياً
         </p>
 
         <div className="modal-summary-box">
@@ -69,9 +70,10 @@ export default function SubmitModal({
             onClick={() => {
               onDownloadPdf();
             }}
+            disabled={isGeneratingPdf}
           >
             <FileDown size={18} />
-            تحميل نسخة PDF الآن
+            <span>{isGeneratingPdf ? "جاري تجهيز وتنزيل الـ PDF..." : "تحميل نسخة PDF مرة أخرى"}</span>
           </button>
 
           <div className="modal-actions-grid">
