@@ -6,7 +6,6 @@ import {
   Printer,
   CheckCircle2,
   RotateCcw,
-  Sparkles,
   User,
   Calendar,
   Receipt as ReceiptIcon,
@@ -56,7 +55,6 @@ export default function ControlPanel({
             onClick={onLoadSample}
             title="استرجاع بيانات النموذج الأصلي (مطابقة للصورة)"
           >
-            <Sparkles size={14} />
             <span>النموذج الأصلي</span>
           </button>
           <button
