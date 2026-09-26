@@ -1,14 +1,19 @@
 import React, { useState, useMemo } from "react";
-import { Search, Plus, ArrowRight, FileText } from "lucide-react";
+import { Search, Plus, ArrowRight, RotateCw, Trash2, CheckCircle2 } from "lucide-react";
 import "./AdminDashboard.css";
 
 export default function AdminDashboard({
   invoices = [],
   onViewInvoice,
   onCreateNewInvoice,
+  onRefresh,
+  onDeleteInvoice,
+  isLoading = false,
+  apiStatus = "idle",
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [deletingId, setDeletingId] = useState(null);
   const itemsPerPage = 5;
 
   // Filter invoices by client name or invoice number
@@ -24,15 +29,14 @@ export default function AdminDashboard({
 
   // Unique clients count
   const clientsCount = useMemo(() => {
-    const unique = new Set(invoices.map((inv) => inv.clientName));
-    return unique.size || 3;
+    const unique = new Set(invoices.map((inv) => inv.clientName).filter(Boolean));
+    return unique.size || (invoices.length > 0 ? invoices.length : 0);
   }, [invoices]);
 
   // Overall total revenue
   const totalRevenue = useMemo(() => {
     const sum = invoices.reduce((acc, inv) => acc + (parseFloat(inv.total) || 0), 0);
-    // If it's the initial 3 samples, display 50000 or the computed sum
-    return sum > 0 ? (sum < 10000 ? 50000 : sum) : 50000;
+    return Math.round(sum);
   }, [invoices]);
 
   // Pagination calculation
@@ -41,6 +45,16 @@ export default function AdminDashboard({
     const start = (currentPage - 1) * itemsPerPage;
     return filteredInvoices.slice(start, start + itemsPerPage);
   }, [filteredInvoices, currentPage, itemsPerPage]);
+
+  const handleDelete = async (inv) => {
+    if (window.confirm(`هل أنت متأكد من حذف فاتورة "${inv.clientName || inv.invoiceNumber}"؟`)) {
+      setDeletingId(inv.id);
+      if (onDeleteInvoice) {
+        await onDeleteInvoice(inv.id, inv._id);
+      }
+      setDeletingId(null);
+    }
+  };
 
   return (
     <div className="admin-page-container">
@@ -64,6 +78,38 @@ export default function AdminDashboard({
           </div>
 
           <div className="admin-top-actions">
+            {onRefresh && (
+              <button
+                type="button"
+                className="btn-refresh-api"
+                onClick={onRefresh}
+                disabled={isLoading}
+                title="تحديث ومزامنة الفواتير من الخادم"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "10px 14px",
+                  borderRadius: 10,
+                  border: "1px solid #d1d5db",
+                  backgroundColor: "#ffffff",
+                  color: "#374151",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                }}
+              >
+                <RotateCw
+                  size={15}
+                  style={{
+                    animation: isLoading ? "spin 1s linear infinite" : "none",
+                  }}
+                />
+                <span>{isLoading ? "جاري التحديث..." : "مزامنة"}</span>
+              </button>
+            )}
+
             <button
               type="button"
               className="btn-nav-to-receipt"
@@ -121,7 +167,7 @@ export default function AdminDashboard({
             </thead>
             <tbody>
               {paginatedInvoices.map((inv) => (
-                <tr key={inv.id}>
+                <tr key={inv.id || inv._id}>
                   {/* Client with Avatar */}
                   <td>
                     <div className="client-info-cell">
@@ -146,22 +192,47 @@ export default function AdminDashboard({
                   {/* Total Amount & Currency */}
                   <td>
                     <div className="total-amount-cell">
-                      <span className="amount-number">{inv.total}</span>
+                      <span className="amount-number">{inv.total?.toLocaleString() || inv.total}</span>
                       <span className="amount-currency">SAR</span>
                     </div>
                   </td>
 
-                  {/* Action Link: View → */}
+                  {/* Action Link: View → & Delete */}
                   <td className="action-cell">
-                    <button
-                      type="button"
-                      className="btn-view-invoice"
-                      onClick={() => onViewInvoice(inv)}
-                      title="عرض وطباعة هذه الفاتورة"
-                    >
-                      <span>View</span>
-                      <ArrowRight size={14} />
-                    </button>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6 }}>
+                      <button
+                        type="button"
+                        className="btn-view-invoice"
+                        onClick={() => onViewInvoice(inv)}
+                        title="عرض وطباعة هذه الفاتورة"
+                      >
+                        <span>View</span>
+                        <ArrowRight size={14} />
+                      </button>
+
+                      {onDeleteInvoice && (
+                        <button
+                          type="button"
+                          className="btn-delete-invoice"
+                          onClick={() => handleDelete(inv)}
+                          disabled={deletingId === inv.id}
+                          title="حذف الفاتورة"
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            color: "#ef4444",
+                            cursor: "pointer",
+                            padding: "6px",
+                            borderRadius: "6px",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            opacity: deletingId === inv.id ? 0.4 : 0.8,
+                          }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -169,7 +240,7 @@ export default function AdminDashboard({
               {paginatedInvoices.length === 0 && (
                 <tr>
                   <td colSpan="4" style={{ textAlign: "center", padding: "32px", color: "#6b7280" }}>
-                    لا توجد فواتير مطابقة لبحثك
+                    {isLoading ? "جاري تحميل الفواتير من السيرفر..." : "لا توجد فواتير مطابقة لبحثك"}
                   </td>
                 </tr>
               )}

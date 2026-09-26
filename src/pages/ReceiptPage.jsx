@@ -19,6 +19,7 @@ import {
 } from "../utils/arabicOrdinals";
 import { downloadReceiptPDF } from "../utils/exportPdf";
 import { initialSampleItems } from "../data/invoicesData";
+import { getInvoiceById, normalizeInvoice } from "../APIs/invoicesAPI";
 
 export default function ReceiptPage({
   invoicesList = [],
@@ -59,16 +60,38 @@ export default function ReceiptPage({
     const isNew = searchParams.get("new");
 
     if (invId) {
-      const found = invoicesList.find((i) => i.id === invId);
+      const found = invoicesList.find((i) => i.id === invId || i._id === invId);
       if (found) {
-        setCustomerName(found.clientName || "");
+        setCustomerName(found.clientName || found.name || "");
         setInvoiceNumber(found.invoiceNumber?.replace("INV-", "") || "1");
         setInvoiceDate(found.date || getCurrentDateFormatted());
-        setTax(found.tax || "0.00");
+        setTax(found.tax != null ? String(found.tax) : "0.00");
         if (found.items && found.items.length > 0) {
           setItems(found.items);
         }
         setActiveMobileTab("preview");
+        return;
+      }
+
+      // If not found in local cache (e.g. direct URL), fetch directly from API
+      if (invId && !invId.startsWith("inv-")) {
+        getInvoiceById(invId)
+          .then((doc) => {
+            const normalized = normalizeInvoice(doc);
+            if (normalized) {
+              setCustomerName(normalized.clientName || "");
+              setInvoiceNumber(normalized.invoiceNumber?.replace("INV-", "") || "1");
+              setInvoiceDate(normalized.date || getCurrentDateFormatted());
+              setTax(String(normalized.tax || "0.00"));
+              if (normalized.items?.length > 0) {
+                setItems(normalized.items);
+              }
+              setActiveMobileTab("preview");
+            }
+          })
+          .catch((err) => {
+            console.warn("Could not fetch invoice by ID from API:", err);
+          });
         return;
       }
     }
@@ -166,7 +189,7 @@ export default function ReceiptPage({
     ]);
   };
 
-  const handleSubmitInvoice = () => {
+  const handleSubmitInvoice = async () => {
     confetti({
       particleCount: 80,
       spread: 70,
@@ -176,6 +199,7 @@ export default function ReceiptPage({
     const clientInitials = customerName
       ? customerName
           .split(" ")
+          .filter(Boolean)
           .map((n) => n[0])
           .join("")
           .slice(0, 2)
@@ -194,7 +218,12 @@ export default function ReceiptPage({
       items: items,
     };
 
-    onSaveNewInvoice(newInvoiceRecord);
+    if (onSaveNewInvoice) {
+      const saved = await onSaveNewInvoice(newInvoiceRecord);
+      if (saved && saved.invoiceNumber) {
+        setInvoiceNumber(saved.invoiceNumber.replace("INV-", ""));
+      }
+    }
     setIsSubmitModalOpen(true);
 
     // Automatically trigger PDF download when submitting/saving invoice

@@ -129,9 +129,9 @@ export default function ControlPanel({
           />
         </div>
 
-        {/* Invoice Number & Date Grid */}
+        {/* Invoice Number & Date Grid
         <div className="grid-2">
-          {/* Invoice Number */}
+          {/* Invoice Number 
           <div className="input-group">
             <label className="input-label">
               <span>رقم الفاتورة #</span>
@@ -144,7 +144,7 @@ export default function ControlPanel({
             />
           </div>
 
-          {/* Date (Automated - التاريخ تلقائي) */}
+          {/* Date (Automated - التاريخ تلقائي) 
           <div className="input-group">
             <label className="input-label">
               <span>
@@ -161,7 +161,7 @@ export default function ControlPanel({
               title="تاريخ اليوم يتم توليده تلقائياً"
             />
           </div>
-        </div>
+        </div> */}
 
         {/* Tax (Manual Input - الضريبة يدوي) */}
         <div className="input-group">

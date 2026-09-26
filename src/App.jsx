@@ -6,20 +6,31 @@ import Navbar from "./components/Navbar";
 import ReceiptPage from "./pages/ReceiptPage";
 import AdminPage from "./pages/AdminPage";
 import { initialAdminInvoices } from "./data/invoicesData";
+import {
+  fetchNormalizedInvoices,
+  createInvoice,
+  deleteInvoice,
+  formatInvoiceForServer,
+  normalizeInvoice,
+} from "./APIs/invoicesAPI";
 
 export default function App() {
-  // Shared invoices list with localStorage persistence
+  // Shared invoices list with localStorage persistence and API sync
   const [invoicesList, setInvoicesList] = useState(() => {
     const saved = localStorage.getItem("alwafaa_invoices");
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       } catch (e) {
         return initialAdminInvoices;
       }
     }
     return initialAdminInvoices;
   });
+
+  const [isLoadingInvoices, setIsLoadingInvoices] = useState(false);
+  const [apiStatus, setApiStatus] = useState("idle"); // "idle" | "loading" | "connected" | "offline"
 
   // UI state for receipt scaling & controls
   const [showPanel, setShowPanel] = useState(true);
@@ -31,14 +42,91 @@ export default function App() {
   // Ref for receipt actions (submit, download pdf, print)
   const receiptActionsRef = useRef({});
 
-  // Sync to localStorage
+  // Sync to localStorage whenever invoices change
   useEffect(() => {
-    localStorage.setItem("alwafaa_invoices", JSON.stringify(invoicesList));
+    if (invoicesList && invoicesList.length > 0) {
+      localStorage.setItem("alwafaa_invoices", JSON.stringify(invoicesList));
+    }
   }, [invoicesList]);
 
-  // Save new invoice
-  const handleSaveNewInvoice = (newRecord) => {
-    setInvoicesList((prev) => [newRecord, ...prev]);
+  // Load invoices dynamically from Server API on mount
+  const refreshInvoices = async () => {
+    try {
+      setIsLoadingInvoices(true);
+      setApiStatus("loading");
+      const serverInvoices = await fetchNormalizedInvoices();
+      if (serverInvoices && serverInvoices.length > 0) {
+        setInvoicesList(serverInvoices);
+        setApiStatus("connected");
+      } else {
+        setApiStatus("connected");
+      }
+    } catch (err) {
+      console.warn("Backend API not connected, using offline cache:", err.message);
+      setApiStatus("offline");
+    } finally {
+      setIsLoadingInvoices(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshInvoices();
+  }, []);
+
+  // Save new invoice dynamically to MongoDB API
+  const handleSaveNewInvoice = async (recordOrFormData) => {
+    try {
+      // 1. Format payload according to server validation rules
+      const payload = formatInvoiceForServer({
+        customerName: recordOrFormData.clientName || recordOrFormData.customerName || recordOrFormData.name,
+        items: recordOrFormData.items || recordOrFormData.products || [],
+        tax: recordOrFormData.tax || 0,
+      });
+
+      // 2. Call backend POST /api/v1/invoices
+      const res = await createInvoice(payload);
+
+      // 3. Normalize created record
+      let savedRecord;
+      if (res && res.invoice) {
+        savedRecord = normalizeInvoice(res.invoice, invoicesList.length);
+      } else {
+        savedRecord = normalizeInvoice(
+          {
+            ...recordOrFormData,
+            name: payload.name,
+            products: payload.products,
+            tax: payload.tax,
+            total: recordOrFormData.total,
+            createdAt: new Date().toISOString(),
+          },
+          invoicesList.length
+        );
+      }
+
+      // Update state with newest at top
+      setInvoicesList((prev) => [savedRecord, ...prev.filter((i) => i.id !== savedRecord.id && i._id !== savedRecord._id)]);
+      return savedRecord;
+    } catch (err) {
+      console.error("Backend error when saving invoice, saving locally:", err);
+      const fallbackRecord = normalizeInvoice(recordOrFormData, invoicesList.length);
+      setInvoicesList((prev) => [fallbackRecord, ...prev]);
+      return fallbackRecord;
+    }
+  };
+
+  // Delete invoice handler
+  const handleDeleteInvoice = async (id, mongoId) => {
+    const targetId = mongoId || id;
+    try {
+      if (targetId && !String(targetId).startsWith("inv-")) {
+        await deleteInvoice(targetId);
+      }
+    } catch (err) {
+      console.error("Error deleting invoice from server:", err);
+    } finally {
+      setInvoicesList((prev) => prev.filter((inv) => inv.id !== id && inv._id !== id && inv._id !== targetId));
+    }
   };
 
   // Zoom controls
@@ -126,7 +214,15 @@ export default function App() {
         {/* Dedicated Admin Page Route */}
         <Route
           path="/admin"
-          element={<AdminPage invoicesList={invoicesList} />}
+          element={
+            <AdminPage
+              invoicesList={invoicesList}
+              isLoading={isLoadingInvoices}
+              onRefresh={refreshInvoices}
+              onDeleteInvoice={handleDeleteInvoice}
+              apiStatus={apiStatus}
+            />
+          }
         />
 
         {/* Fallback */}
