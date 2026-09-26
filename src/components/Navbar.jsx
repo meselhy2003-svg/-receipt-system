@@ -11,6 +11,7 @@ import {
   Printer,
   Plus,
 } from "lucide-react";
+import logoIcon from "../assets/logo-icon.png";
 
 export default function Navbar({
   zoomLevel = 1,
@@ -32,7 +33,9 @@ export default function Navbar({
   return (
     <header className="app-navbar no-print">
       <div className="navbar-brand">
-        <div className="brand-logo-badge">و</div>
+        <div className="brand-logo-badge">
+          <img src={logoIcon} alt="شعار شركة الوفاء" className="navbar-logo-img" />
+        </div>
         <div className="brand-text-col">
           <span className="brand-title">شركة الوفاء للمستلزمات</span>
           <span className="brand-subtitle">Al-Wafaa Medical Supplies & Cosmetic</span>

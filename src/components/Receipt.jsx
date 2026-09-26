@@ -2,6 +2,7 @@ import React from "react";
 import { Phone, Mail } from "lucide-react";
 import "./Receipt.css";
 import { formatCurrency } from "../utils/arabicOrdinals";
+import defaultLogo from "../assets/logo-cropped.png";
 
 export default function Receipt({
   invoiceNumber = "1",
@@ -18,6 +19,8 @@ export default function Receipt({
   email = "elwafaa.company1@gmail.com",
   noteText = "التأكد من استلام جميع بنود الفاتورة",
   thankYouText = "شكرا لكم...",
+  logoUrl = defaultLogo,
+  badgeTheme = "white", // "white" | "dark"
 }) {
   // Pad with dashed rows if items count is less than minRows (exactly like the image)
   const emptyRowsCount = Math.max(0, minRows - items.length);
@@ -26,9 +29,16 @@ export default function Receipt({
   return (
     <div className="receipt-wrapper">
       <div id="receipt-document" className="receipt-sheet">
-        {/* TOP TEAL BANNER WITH COMPANY BADGE */}
+        {/* TOP BRAND BANNER WITH COMPANY BADGE & LOGO */}
         <div className="receipt-header-banner">
-          <div className="header-center-badge">
+          <div className={`header-center-badge theme-${badgeTheme}`}>
+            {logoUrl && (
+              <img
+                src={logoUrl}
+                alt="شعار شركة الوفاء للمستلزمات"
+                className="header-badge-logo"
+              />
+            )}
             <span className="header-company-name">{companyName}</span>
           </div>
         </div>

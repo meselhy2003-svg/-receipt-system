@@ -30,6 +30,10 @@ export default function ControlPanel({
   updateItem,
   subtotal,
   grandTotal,
+  badgeTheme = "white",
+  setBadgeTheme,
+  logoChoice = "cropped",
+  setLogoChoice,
   onSubmit,
   onDownloadPdf,
   onPrint,
@@ -66,6 +70,40 @@ export default function ControlPanel({
           </button>
         </div>
       </div>
+
+      {/* Brand & Badge Customization Section */}
+      <section className="form-section">
+        <div className="section-label">
+          <span>شعار وهوية الفاتورة</span>
+          <span className="badge-tag auto">هوية الشعار</span>
+        </div>
+
+        <div className="grid-2">
+          <div className="input-group">
+            <label className="input-label">خلفية مستطيل الترويسة</label>
+            <select
+              className="input-field"
+              value={badgeTheme}
+              onChange={(e) => setBadgeTheme && setBadgeTheme(e.target.value)}
+            >
+              <option value="white">أبيض ناصع (إبراز الشعار)</option>
+              <option value="dark">أخضر زيتي متناسق</option>
+            </select>
+          </div>
+
+          <div className="input-group">
+            <label className="input-label">شكل الشعار</label>
+            <select
+              className="input-field"
+              value={logoChoice}
+              onChange={(e) => setLogoChoice && setLogoChoice(e.target.value)}
+            >
+              <option value="cropped">الشعار الكامل</option>
+              <option value="icon">رمز الدرع فقط</option>
+            </select>
+          </div>
+        </div>
+      </section>
 
       {/* Invoice Meta Section */}
       <section className="form-section">

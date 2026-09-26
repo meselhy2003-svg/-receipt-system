@@ -1,8 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@300;400;500;700;800;900&display=swap');
 
 :root {
-  --teal-primary: #125158;
-  --teal-badge: #1c676d;
+  --teal-primary: #004f49;
+  --teal-dark: #003d38;
+  --teal-accent: #33ada0;
+  --teal-light: #e6f7f5;
+  --teal-border: #99dcd4;
+  --teal-badge: #004f49;
   --tan-primary: #dabf8a;
   --tan-hover: #cfb177;
   --text-dark: #1e293b;

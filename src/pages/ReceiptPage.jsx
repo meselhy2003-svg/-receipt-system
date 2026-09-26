@@ -43,6 +43,10 @@ export default function ReceiptPage({
   const [invoiceDate, setInvoiceDate] = useState(getCurrentDateFormatted());
   const [items, setItems] = useState(initialSampleItems);
 
+  // Logo & Badge Theme customization states
+  const [badgeTheme, setBadgeTheme] = useState("white"); // "white" | "dark"
+  const [logoChoice, setLogoChoice] = useState("cropped"); // "cropped" | "icon"
+
   // Mobile tabs state
   const [activeMobileTab, setActiveMobileTab] = useState("form");
   const [isMobile, setIsMobile] = useState(false);
@@ -258,6 +262,10 @@ export default function ReceiptPage({
             updateItem={handleUpdateItem}
             subtotal={subtotal}
             grandTotal={grandTotal}
+            badgeTheme={badgeTheme}
+            setBadgeTheme={setBadgeTheme}
+            logoChoice={logoChoice}
+            setLogoChoice={setLogoChoice}
             onSubmit={handleSubmitInvoice}
             onDownloadPdf={handleDownloadPdf}
             onPrint={handlePrint}
@@ -298,6 +306,8 @@ export default function ReceiptPage({
                     subtotal={subtotal}
                     grandTotal={grandTotal}
                     minRows={7}
+                    badgeTheme={badgeTheme}
+                    logoUrl={logoChoice === "icon" ? "/logo-icon.png" : "/logo-cropped.png"}
                   />
                 </div>
               </div>

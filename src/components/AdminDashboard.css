@@ -42,7 +42,7 @@
 
 /* Dual-tone letters matching the image exactly */
 .title-green {
-  color: #117e57;
+  color: var(--teal-primary, #004f49);
 }
 
 .title-sand {
@@ -56,7 +56,7 @@
 }
 
 .btn-nav-to-receipt {
-  background-color: #117e57;
+  background-color: var(--teal-primary, #004f49);
   color: #ffffff;
   border: none;
   padding: 10px 18px;
@@ -68,11 +68,11 @@
   align-items: center;
   gap: 8px;
   transition: all 0.2s;
-  box-shadow: 0 2px 8px rgba(17, 126, 87, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 79, 73, 0.2);
 }
 
 .btn-nav-to-receipt:hover {
-  background-color: #0d6344;
+  background-color: var(--teal-dark, #003d38);
   transform: translateY(-1px);
 }
 
@@ -99,7 +99,7 @@
 .stat-number {
   font-size: 40px;
   font-weight: 800;
-  color: #117e57;
+  color: var(--teal-primary, #004f49);
   line-height: 1;
   letter-spacing: -0.5px;
 }
@@ -133,8 +133,8 @@
 }
 
 .admin-search-bar:focus-within {
-  border-color: #117e57;
-  box-shadow: 0 0 0 3px rgba(17, 126, 87, 0.1);
+  border-color: var(--teal-primary, #004f49);
+  box-shadow: 0 0 0 3px rgba(0, 79, 73, 0.1);
 }
 
 .search-icon {
@@ -263,7 +263,7 @@
 }
 
 .avatar-default {
-  background-color: #117e57;
+  background-color: var(--teal-primary, #004f49);
   color: #ffffff;
 }
 
@@ -324,7 +324,7 @@
 .btn-view-invoice {
   background: transparent;
   border: none;
-  color: #117e57;
+  color: var(--teal-primary, #004f49);
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
@@ -338,8 +338,8 @@
 }
 
 .btn-view-invoice:hover {
-  background-color: #ecfdf5;
-  color: #0b5e40;
+  background-color: var(--teal-light, #e6f7f5);
+  color: var(--teal-dark, #003d38);
   transform: translateX(2px);
 }
 
@@ -375,8 +375,8 @@
 }
 
 .pagination-btn.active {
-  background-color: #117e57;
-  border-color: #117e57;
+  background-color: var(--teal-primary, #004f49);
+  border-color: var(--teal-primary, #004f49);
   color: #ffffff;
   font-weight: 700;
 }

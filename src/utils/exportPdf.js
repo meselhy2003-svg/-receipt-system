@@ -16,6 +16,18 @@ export async function downloadReceiptPDF(elementId = "receipt-document", filenam
     await document.fonts.ready;
   }
 
+  // Ensure all images (logo, badges) inside receipt are completely loaded
+  const images = element.querySelectorAll("img");
+  await Promise.all(
+    Array.from(images).map((img) => {
+      if (img.complete) return Promise.resolve();
+      return new Promise((resolve) => {
+        img.onload = resolve;
+        img.onerror = resolve;
+      });
+    })
+  );
+
   try {
     // Generate high-resolution image using native browser SVG/HarfBuzz shaping
     const dataUrl = await toJpeg(element, {
