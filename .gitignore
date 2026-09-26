@@ -27,3 +27,5 @@ dist-ssr
 *.pdf
 logo/*.pdf
 test_downloads/
+
+.vercel
