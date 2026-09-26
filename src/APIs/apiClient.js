@@ -3,7 +3,7 @@
 // All requests and responses are JSON by default.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api/v1";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api/v1";
 
 /**
  * Core fetch wrapper.
