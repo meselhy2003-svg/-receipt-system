@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Exported PDFs and test files
+*.pdf
+logo/*.pdf
+test_downloads/
