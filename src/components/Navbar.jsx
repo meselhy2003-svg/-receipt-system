@@ -1,8 +1,6 @@
 import React from "react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard,
-  FileText,
   ZoomIn,
   ZoomOut,
   SlidersHorizontal,
@@ -40,29 +38,6 @@ export default function Navbar({
           <span className="brand-title">شركة الوفاء للمستلزمات</span>
           <span className="brand-subtitle">Al-Wafaa Medical Supplies & Cosmetic</span>
         </div>
-      </div>
-
-      {/* Primary Route Switcher Tabs: /admin vs /receipt */}
-      <div className="view-mode-tabs-container">
-        <NavLink
-          to="/admin"
-          className={({ isActive }) =>
-            `view-tab-btn ${isActive ? "active" : ""}`
-          }
-        >
-          <LayoutDashboard size={15} />
-          <span>لوحة الإدارة (Admin)</span>
-        </NavLink>
-
-        <NavLink
-          to="/receipt"
-          className={({ isActive }) =>
-            `view-tab-btn ${isActive ? "active" : ""}`
-          }
-        >
-          <FileText size={15} />
-          <span>فاتورة المبيعات (Receipt)</span>
-        </NavLink>
       </div>
 
       <div className="navbar-controls">
