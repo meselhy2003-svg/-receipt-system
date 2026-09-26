@@ -73,7 +73,10 @@ export default function Navbar({
             {/* Quick Submit */}
             <button
               className="btn-nav-action"
-              onClick={onSubmitInvoice}
+              onClick={() => {
+                if (onSubmitInvoice) onSubmitInvoice();
+                else window.dispatchEvent(new CustomEvent("alwafaa:submit"));
+              }}
               title="اعتماد وحفظ الفاتورة"
             >
               <CheckCircle2 size={15} />
@@ -83,7 +86,10 @@ export default function Navbar({
             {/* Quick Download PDF */}
             <button
               className="btn-nav-action pdf"
-              onClick={onDownloadPdf}
+              onClick={() => {
+                if (onDownloadPdf) onDownloadPdf();
+                else window.dispatchEvent(new CustomEvent("alwafaa:download-pdf"));
+              }}
               disabled={isGeneratingPdf}
               title="تنزيل الفاتورة بصيغة PDF"
             >
@@ -94,7 +100,10 @@ export default function Navbar({
             {/* Print */}
             <button
               className="btn-toggle-panel"
-              onClick={onPrint}
+              onClick={() => {
+                if (onPrint) onPrint();
+                else window.print();
+              }}
               title="طباعة مباشرة"
             >
               <Printer size={15} />

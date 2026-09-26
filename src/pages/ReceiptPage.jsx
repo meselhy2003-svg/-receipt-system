@@ -32,6 +32,7 @@ export default function ReceiptPage({
   setIsGeneratingPdf,
   isSubmitModalOpen,
   setIsSubmitModalOpen,
+  receiptActionsRef,
 }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -213,6 +214,34 @@ export default function ReceiptPage({
   const handlePrint = () => {
     window.print();
   };
+
+  // Register actions to ref for Navbar triggers
+  useEffect(() => {
+    if (receiptActionsRef) {
+      receiptActionsRef.current = {
+        submit: handleSubmitInvoice,
+        downloadPdf: handleDownloadPdf,
+        print: handlePrint,
+      };
+    }
+  });
+
+  // Global event listeners for Navbar triggers
+  useEffect(() => {
+    const onPdf = () => handleDownloadPdf();
+    const onSubmit = () => handleSubmitInvoice();
+    const onPrint = () => handlePrint();
+
+    window.addEventListener("alwafaa:download-pdf", onPdf);
+    window.addEventListener("alwafaa:submit", onSubmit);
+    window.addEventListener("alwafaa:print", onPrint);
+
+    return () => {
+      window.removeEventListener("alwafaa:download-pdf", onPdf);
+      window.removeEventListener("alwafaa:submit", onSubmit);
+      window.removeEventListener("alwafaa:print", onPrint);
+    };
+  }, [handleSubmitInvoice, handleDownloadPdf, handlePrint]);
 
   return (
     <div className="receipt-page-container">

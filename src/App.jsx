@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 
@@ -28,6 +28,9 @@ export default function App() {
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
+  // Ref for receipt actions (submit, download pdf, print)
+  const receiptActionsRef = useRef({});
+
   // Sync to localStorage
   useEffect(() => {
     localStorage.setItem("alwafaa_invoices", JSON.stringify(invoicesList));
@@ -43,6 +46,31 @@ export default function App() {
   const zoomOut = () => setZoomLevel((prev) => Math.max(prev - 0.1, 0.5));
   const resetZoom = () => setZoomLevel(1);
 
+  // Navbar button action triggers
+  const handleNavbarSubmit = () => {
+    if (receiptActionsRef.current?.submit) {
+      receiptActionsRef.current.submit();
+    } else {
+      window.dispatchEvent(new CustomEvent("alwafaa:submit"));
+    }
+  };
+
+  const handleNavbarDownloadPdf = () => {
+    if (receiptActionsRef.current?.downloadPdf) {
+      receiptActionsRef.current.downloadPdf();
+    } else {
+      window.dispatchEvent(new CustomEvent("alwafaa:download-pdf"));
+    }
+  };
+
+  const handleNavbarPrint = () => {
+    if (receiptActionsRef.current?.print) {
+      receiptActionsRef.current.print();
+    } else {
+      window.print();
+    }
+  };
+
   // Mobile scale computation
   const fitScale = useMemo(() => {
     const isMobile = window.innerWidth <= 860;
@@ -54,7 +82,7 @@ export default function App() {
 
   return (
     <div className="app-container">
-      {/* Top Navbar with Dedicated Route Links (/admin and /receipt) */}
+      {/* Top Navbar */}
       <Navbar
         zoomLevel={zoomLevel}
         fitScale={fitScale}
@@ -63,6 +91,9 @@ export default function App() {
         resetZoom={resetZoom}
         showPanel={showPanel}
         setShowPanel={setShowPanel}
+        onSubmitInvoice={handleNavbarSubmit}
+        onDownloadPdf={handleNavbarDownloadPdf}
+        onPrint={handleNavbarPrint}
         isGeneratingPdf={isGeneratingPdf}
       />
 
@@ -87,6 +118,7 @@ export default function App() {
               setIsGeneratingPdf={setIsGeneratingPdf}
               isSubmitModalOpen={isSubmitModalOpen}
               setIsSubmitModalOpen={setIsSubmitModalOpen}
+              receiptActionsRef={receiptActionsRef}
             />
           }
         />
