@@ -14,6 +14,7 @@ const DB_URL =
 const InvoiceSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
+    invoiceNumber: { type: String },
     tax: { type: Number, default: 0 },
     total: { type: Number, default: 0 },
     products: [
@@ -103,9 +104,19 @@ router.post("/invoices", async (req, res) => {
     });
   }
   try {
-    const { name, tax = 0, products = [] } = req.body;
+    let { name, tax = 0, products = [], invoiceNumber } = req.body;
     if (!name) {
       return res.status(400).json({ message: "اسم العميل مطلوب" });
+    }
+
+    if (!invoiceNumber) {
+      const count = await Invoice.countDocuments();
+      invoiceNumber = `INV-${String(count + 1).padStart(3, "0")}`;
+    } else if (!invoiceNumber.startsWith("INV-")) {
+      const numOnly = parseInt(String(invoiceNumber).replace(/\D/g, ""), 10);
+      invoiceNumber = !isNaN(numOnly)
+        ? `INV-${String(numOnly).padStart(3, "0")}`
+        : invoiceNumber;
     }
 
     const priceBeforeTax = products.reduce(
@@ -118,7 +129,13 @@ router.post("/invoices", async (req, res) => {
         ? priceBeforeTax + (priceBeforeTax * taxNum) / 100
         : priceBeforeTax;
 
-    const invoice = await Invoice.create({ name, tax: taxNum, total, products });
+    const invoice = await Invoice.create({
+      name,
+      invoiceNumber,
+      tax: taxNum,
+      total,
+      products,
+    });
     res.status(201).json({ message: "تم اضافه الفاتورة بنجاح", invoice });
   } catch (err) {
     res.status(500).json({ message: "فشل اضافه الفاتورة", error: err.message });

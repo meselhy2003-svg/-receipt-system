@@ -20,6 +20,10 @@ import {
 import { downloadReceiptPDF } from "../utils/exportPdf";
 import { initialSampleItems } from "../data/invoicesData";
 import { getInvoiceById, normalizeInvoice } from "../APIs/invoicesAPI";
+import {
+  getNextInvoiceNumber,
+  formatInvoiceNumber,
+} from "../utils/invoiceNumbering";
 
 export default function ReceiptPage({
   invoicesList = [],
@@ -41,7 +45,7 @@ export default function ReceiptPage({
   // Receipt manual states
   const [customerName, setCustomerName] = useState("");
   const [tax, setTax] = useState("0.00");
-  const [invoiceNumber, setInvoiceNumber] = useState("1");
+  const [invoiceNumber, setInvoiceNumber] = useState(() => getNextInvoiceNumber(invoicesList));
   const [invoiceDate, setInvoiceDate] = useState(getCurrentDateFormatted());
   const [items, setItems] = useState(initialSampleItems);
 
@@ -168,7 +172,7 @@ export default function ReceiptPage({
   const handleLoadSample = () => {
     setCustomerName("");
     setTax("0.00");
-    setInvoiceNumber("1");
+    setInvoiceNumber(getNextInvoiceNumber(invoicesList));
     setInvoiceDate(getCurrentDateFormatted());
     setItems(initialSampleItems);
   };
@@ -176,8 +180,7 @@ export default function ReceiptPage({
   const handleResetNew = () => {
     setCustomerName("");
     setTax("0.00");
-    const nextInv = (parseInt(invoiceNumber, 10) || 0) + 1;
-    setInvoiceNumber(String(nextInv));
+    setInvoiceNumber(getNextInvoiceNumber(invoicesList));
     setInvoiceDate(getCurrentDateFormatted());
     setItems([
       {
@@ -206,10 +209,13 @@ export default function ReceiptPage({
           .toUpperCase()
       : "CL";
 
+    const finalRawNum = invoiceNumber?.trim() || getNextInvoiceNumber(invoicesList);
+    const formattedInvNum = formatInvoiceNumber(finalRawNum);
+
     const newInvoiceRecord = {
       id: `inv-${Date.now()}`,
-      clientName: customerName || `عميل #${invoiceNumber}`,
-      invoiceNumber: `INV-${String(invoiceNumber).padStart(3, "0")}`,
+      clientName: customerName || `عميل #${finalRawNum}`,
+      invoiceNumber: formattedInvNum,
       avatarLetters: clientInitials,
       avatarClass: "avatar-default",
       total: Math.round(grandTotal),
@@ -219,11 +225,13 @@ export default function ReceiptPage({
     };
 
     if (onSaveNewInvoice) {
-      const saved = await onSaveNewInvoice(newInvoiceRecord);
-      if (saved && saved.invoiceNumber) {
-        setInvoiceNumber(saved.invoiceNumber.replace("INV-", ""));
-      }
+      await onSaveNewInvoice(newInvoiceRecord);
     }
+
+    // Automatically prepare next sequential invoice number for next invoice
+    const nextNum = getNextInvoiceNumber([...invoicesList, newInvoiceRecord]);
+    setInvoiceNumber(nextNum);
+
     setIsSubmitModalOpen(true);
 
     // Automatically trigger PDF download when submitting/saving invoice

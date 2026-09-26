@@ -1,5 +1,16 @@
 import React, { useState, useMemo } from "react";
-import { Search, Plus, ArrowRight, RotateCw, Trash2, CheckCircle2 } from "lucide-react";
+import {
+  Search,
+  Plus,
+  ArrowRight,
+  RotateCw,
+  Trash2,
+  CheckCircle2,
+  X,
+  ExternalLink,
+  ShieldAlert,
+  ShieldCheck,
+} from "lucide-react";
 import "./AdminDashboard.css";
 
 export default function AdminDashboard({
@@ -14,6 +25,7 @@ export default function AdminDashboard({
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [deletingId, setDeletingId] = useState(null);
+  const [showAtlasGuide, setShowAtlasGuide] = useState(false);
   const itemsPerPage = 5;
 
   // Filter invoices by client name or invoice number
@@ -77,7 +89,58 @@ export default function AdminDashboard({
             </h1>
           </div>
 
-          <div className="admin-top-actions">
+          <div className="admin-top-actions" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            {/* Cloud Sync Status Indicator */}
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "8px 12px",
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 600,
+                backgroundColor: apiStatus === "connected" ? "#ecfdf5" : "#fef3c7",
+                color: apiStatus === "connected" ? "#065f46" : "#92400e",
+                border: apiStatus === "connected" ? "1px solid #a7f3d0" : "1px solid #fde68a",
+              }}
+            >
+              <span
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  backgroundColor: apiStatus === "connected" ? "#10b981" : "#f59e0b",
+                  display: "inline-block",
+                }}
+              />
+              <span>
+                {apiStatus === "connected"
+                  ? "السحابة متصلة ومزامنة عالمياً"
+                  : "مزامنة محلية (بانتظار تصريح Atlas)"}
+              </span>
+              {apiStatus !== "connected" && (
+                <button
+                  type="button"
+                  onClick={() => setShowAtlasGuide(true)}
+                  style={{
+                    marginRight: 6,
+                    padding: "3px 8px",
+                    borderRadius: 4,
+                    backgroundColor: "#d97706",
+                    color: "#ffffff",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: 11,
+                    fontWeight: 700,
+                  }}
+                  title="اضغط لمعرفة خطوات تفعيل الربط السحابي في دقيقة واحدة"
+                >
+                  طريقة التفعيل ↗
+                </button>
+              )}
+            </div>
+
             {onRefresh && (
               <button
                 type="button"
@@ -302,6 +365,103 @@ export default function AdminDashboard({
           </button>
         </div>
       </div>
+
+      {/* Atlas Guide Modal */}
+      {showAtlasGuide && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16,
+            direction: "rtl",
+          }}
+          onClick={() => setShowAtlasGuide(false)}
+        >
+          <div
+            style={{
+              backgroundColor: "#ffffff",
+              borderRadius: 14,
+              maxWidth: 520,
+              width: "100%",
+              padding: 24,
+              boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.2)",
+              position: "relative",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <ShieldAlert size={22} color="#d97706" />
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "#111827" }}>
+                  تفعيل الربط السحابي لجميع الأجهزة (MongoDB Atlas)
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAtlasGuide(false)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#9ca3af",
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: 14, color: "#4b5563", lineHeight: 1.6, margin: "0 0 16px" }}>
+              لكي تظهر الفواتير التي ينشئها أي شخص من أي موبايل أو كمبيوتر حول العالم في لوحة تحكم الأدمن مباشرة، تحتاج فقط السماح للاتصال السحابي في MongoDB Atlas (خطوة واحدة تستغرق دقيقة واحدة):
+            </p>
+
+            <ol style={{ paddingRight: 20, margin: "0 0 20px", fontSize: 14, color: "#1f2937", lineHeight: 1.8 }}>
+              <li>
+                افتح موقع{" "}
+                <a
+                  href="https://cloud.mongodb.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: "#004f49", fontWeight: 700, textDecoration: "underline" }}
+                >
+                  cloud.mongodb.com <ExternalLink size={12} style={{ display: "inline" }} />
+                </a>{" "}
+                وسجل الدخول.
+              </li>
+              <li>من القائمة الجانبية اليسرى تحت <strong>Security</strong>، اختر <strong>Network Access</strong>.</li>
+              <li>اضغط على الزر الأخضر <strong>+ Add IP Address</strong>.</li>
+              <li>اضغط على خيار <strong>ALLOW ACCESS FROM ANYWHERE</strong> (سيتم وضع <code>0.0.0.0/0</code> تلقائياً).</li>
+              <li>اضغط <strong>Confirm</strong>.</li>
+            </ol>
+
+            <div style={{ backgroundColor: "#ecfdf5", border: "1px solid #a7f3d0", padding: "12px 14px", borderRadius: 8, fontSize: 13, color: "#065f46", marginBottom: 20 }}>
+              💡 بمجرد الضغط على Confirm، ستتصل السحابة تلقائياً وستظهر أي فاتورة جديدة للأدمن فوراً بدون الحاجة لأي تعديل آخر!
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowAtlasGuide(false)}
+              style={{
+                width: "100%",
+                padding: "10px",
+                borderRadius: 8,
+                backgroundColor: "#004f49",
+                color: "#ffffff",
+                border: "none",
+                fontWeight: 700,
+                fontSize: 14,
+                cursor: "pointer",
+              }}
+            >
+              فهمت ذلك، إغلاق
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

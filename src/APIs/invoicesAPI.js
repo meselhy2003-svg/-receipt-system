@@ -156,10 +156,11 @@ export const normalizeInvoice = (doc, index = 0) => {
  * @param {number|string} [formData.tax]
  * @returns {{ name: string, products: Array<{name: string, qty: number, price: number}>, tax: number }}
  */
-export const formatInvoiceForServer = ({ customerName, items = [], tax = 0 }) => {
+export const formatInvoiceForServer = ({ customerName, items = [], tax = 0, invoiceNumber }) => {
   return {
     name: customerName?.trim() || "عميل غير مسمى",
     tax: parseFloat(tax) || 0,
+    invoiceNumber: invoiceNumber ? String(invoiceNumber) : undefined,
     products: (items || []).map((item) => ({
       name: item.name?.trim() || "صنف",
       qty: Math.max(1, Number(item.quantity) || 1),

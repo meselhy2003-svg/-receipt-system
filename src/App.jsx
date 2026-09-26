@@ -13,6 +13,11 @@ import {
   formatInvoiceForServer,
   normalizeInvoice,
 } from "./APIs/invoicesAPI";
+import {
+  healDuplicateInvoices,
+  getNextInvoiceNumber,
+  formatInvoiceNumber,
+} from "./utils/invoiceNumbering";
 
 export default function App() {
   // Shared invoices list with localStorage persistence and API sync
@@ -21,12 +26,14 @@ export default function App() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return healDuplicateInvoices(parsed);
+        }
       } catch (e) {
         return initialAdminInvoices;
       }
     }
-    return initialAdminInvoices;
+    return healDuplicateInvoices(initialAdminInvoices);
   });
 
   const [isLoadingInvoices, setIsLoadingInvoices] = useState(false);
@@ -75,12 +82,20 @@ export default function App() {
 
   // Save new invoice dynamically to MongoDB API
   const handleSaveNewInvoice = async (recordOrFormData) => {
+    // Ensure invoiceNumber is unique
+    const determinedInvNum =
+      recordOrFormData.invoiceNumber &&
+      !invoicesList.some((i) => i.invoiceNumber === recordOrFormData.invoiceNumber)
+        ? recordOrFormData.invoiceNumber
+        : formatInvoiceNumber(getNextInvoiceNumber(invoicesList));
+
     try {
       // 1. Format payload according to server validation rules
       const payload = formatInvoiceForServer({
         customerName: recordOrFormData.clientName || recordOrFormData.customerName || recordOrFormData.name,
         items: recordOrFormData.items || recordOrFormData.products || [],
         tax: recordOrFormData.tax || 0,
+        invoiceNumber: determinedInvNum,
       });
 
       // 2. Call backend POST /api/v1/invoices
@@ -94,6 +109,7 @@ export default function App() {
         savedRecord = normalizeInvoice(
           {
             ...recordOrFormData,
+            invoiceNumber: determinedInvNum,
             name: payload.name,
             products: payload.products,
             tax: payload.tax,
@@ -104,13 +120,24 @@ export default function App() {
         );
       }
 
-      // Update state with newest at top
-      setInvoicesList((prev) => [savedRecord, ...prev.filter((i) => i.id !== savedRecord.id && i._id !== savedRecord._id)]);
+      // Update state with newest at top, healed for uniqueness
+      setInvoicesList((prev) =>
+        healDuplicateInvoices([
+          savedRecord,
+          ...prev.filter((i) => i.id !== savedRecord.id && i._id !== savedRecord._id),
+        ])
+      );
       return savedRecord;
     } catch (err) {
       console.error("Backend error when saving invoice, saving locally:", err);
-      const fallbackRecord = normalizeInvoice(recordOrFormData, invoicesList.length);
-      setInvoicesList((prev) => [fallbackRecord, ...prev]);
+      const fallbackRecord = normalizeInvoice(
+        {
+          ...recordOrFormData,
+          invoiceNumber: determinedInvNum,
+        },
+        invoicesList.length
+      );
+      setInvoicesList((prev) => healDuplicateInvoices([fallbackRecord, ...prev]));
       return fallbackRecord;
     }
   };
