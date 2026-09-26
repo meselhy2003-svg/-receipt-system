@@ -2,7 +2,7 @@ import React from "react";
 import { Phone, Mail } from "lucide-react";
 import "./Receipt.css";
 import { formatCurrency } from "../utils/arabicOrdinals";
-import defaultLogo from "../assets/logo-cropped.png";
+import defaultLogo from "../assets/logo.png";
 
 export default function Receipt({
   invoiceNumber = "1",

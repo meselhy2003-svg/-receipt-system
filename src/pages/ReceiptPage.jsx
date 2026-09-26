@@ -370,7 +370,7 @@ export default function ReceiptPage({
                     grandTotal={grandTotal}
                     minRows={7}
                     badgeTheme={badgeTheme}
-                    logoUrl={logoChoice === "icon" ? "/logo-icon.png" : "/logo-cropped.png"}
+                    logoUrl={logoChoice === "icon" ? "/logo-icon.png" : "/logo.png"}
                   />
                 </div>
               </div>
